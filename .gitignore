@@ -216,3 +216,29 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==========================================
+# Google AI Studio / Gemini TTS Project
+# ==========================================
+# Generated Audio & Media files
+*.wav
+*.mp3
+*.pcm
+*.aac
+*.ogg
+*.mp4
+
+# Environment variables & API keys
+.env*
+!.env.example
+*credentials*.json
+*service_account*.json
+
+# Virtual Environment & Editor
+myenv/
+.vscode/
+
+# OS specific files
+Thumbs.db
+Desktop.ini
+.DS_Store
