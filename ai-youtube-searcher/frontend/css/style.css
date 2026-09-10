@@ -1,0 +1,74 @@
+/* YouTube Dark Theme & Custom Styling */
+:root {
+  --yt-bg: #0f0f0f;
+  --yt-card: #181818;
+  --yt-border: #2e2e2e;
+  --yt-hover: #272727;
+  --yt-red: #ff0000;
+  --yt-text: #f1f1f1;
+  --yt-text-muted: #aaaaaa;
+}
+
+body {
+  background-color: var(--yt-bg);
+  color: var(--yt-text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--yt-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Volume Slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  background: #3f3f3f;
+  border-radius: 4px;
+  height: 4px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: var(--yt-red);
+}
+
+/* Responsive aspect ratio container for iframe */
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.video-container iframe,
+.video-container div#player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

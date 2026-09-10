@@ -1,0 +1,9 @@
+{
+  "venvPath": "C:\\Users\\2003g\\anaconda3\\envs",
+  "venv": "myenv",
+  "extraPaths": [
+    "C:\\Users\\2003g\\anaconda3\\envs\\myenv\\Lib\\site-packages",
+    "youtube-stt-service",
+    "ai-youtube-searcher/backend"
+  ]
+}

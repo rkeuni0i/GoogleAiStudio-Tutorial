@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI YouTube Searcher</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-[#0f0f0f] text-[#f1f1f1] min-h-screen flex flex-col">
+
+  <!-- ================= TOP HEADER (YouTube Style) ================= -->
+  <!-- 사용자 요구사항: 마이크, 만들기(+), 알림 아이콘 완전 제거 -->
+  <header class="sticky top-0 z-40 bg-[#0f0f0f] border-b border-[#272727] px-4 py-2.5 flex items-center justify-between">
+    
+    <!-- Left: Logo -->
+    <div class="flex items-center gap-4 shrink-0">
+      <button class="p-2 hover:bg-[#272727] rounded-full text-neutral-300 transition-colors">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <a href="/" class="flex items-center gap-1.5 group">
+        <div class="w-8 h-6 bg-[#ff0000] rounded-lg flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+        </div>
+        <div class="flex items-baseline">
+          <span class="text-lg font-bold tracking-tighter text-white">YouTube</span>
+          <span class="ml-1 text-[11px] font-semibold text-neutral-400">AI Searcher</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Center: Search Bar (YouTube Input Design) -->
+    <div class="flex-1 max-w-2xl mx-4">
+      <form id="searchForm" class="flex items-center w-full">
+        <div class="relative flex-1 flex items-center">
+          <input
+            type="text"
+            id="urlInput"
+            placeholder="유튜브 영상 주소(URL)를 입력하세요 (예: https://youtu.be/...)"
+            required
+            class="w-full bg-[#121212] border border-[#303030] focus:border-[#1c62b9] rounded-l-full py-2.5 pl-5 pr-10 text-sm text-[#f1f1f1] placeholder-neutral-500 outline-none transition-colors"
+          />
+          <!-- Clear Button (X) -->
+          <button
+            type="button"
+            id="clearUrlBtn"
+            class="absolute right-3 text-neutral-400 hover:text-white hidden p-1"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <!-- Search Button (돋보기) -->
+        <button
+          type="submit"
+          id="searchBtn"
+          class="bg-[#222222] hover:bg-[#272727] border border-l-0 border-[#303030] rounded-r-full px-6 py-2.5 flex items-center justify-center text-neutral-300 hover:text-white transition-colors"
+          title="검색 및 분석"
+        >
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right: Clean Minimal Status (마이크/만들기/알림 제거됨) -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-[#1f1f1f] border border-[#333333] rounded-full text-xs text-neutral-300 font-medium">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Gemini 3.8 Flash Ready</span>
+      </div>
+      <div class="w-8 h-8 rounded-full bg-red-700 flex items-center justify-center text-xs font-bold text-white shadow">
+        AI
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 max-w-[1800px] w-full mx-auto p-4 sm:p-6">
+    
+    <!-- 1. Initial Empty State -->
+    <div id="emptyState" class="py-24 text-center max-w-lg mx-auto">
+      <div class="w-16 h-16 bg-[#1f1f1f] rounded-2xl flex items-center justify-center text-red-500 mx-auto mb-5 shadow-lg border border-[#2e2e2e]">
+        <i data-lucide="sparkles" class="w-8 h-8"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">유튜브 영상을 검색하고 질문해보세요</h2>
+      <p class="text-sm text-neutral-400 leading-relaxed mb-6">
+        상단 검색창에 YouTube 링크를 넣으면 Gemini가 오디오를 분석하여<br>
+        시간대별 자막을 추출하고, 질문한 내용의 정확한 영상 위치로 이동해 드립니다.
+      </p>
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-[#181818] rounded-xl border border-[#2a2a2a] text-xs text-neutral-400">
+        <i data-lucide="info" class="w-4 h-4 text-neutral-500"></i>
+        <span>자막 타임스탬프 클릭 시 즉시 해당 시점으로 점프 및 자동 재생</span>
+      </div>
+    </div>
+
+    <!-- 2. Video Player & AI Panel Grid (영상 로드 후 표시) -->
+    <div id="mainContent" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- ============ LEFT: Video Player & Controls (7 Cols) ============ -->
+      <section class="lg:col-span-7 space-y-4">
+        <!-- 16:9 Responsive YouTube Player -->
+        <div class="video-container shadow-2xl border border-[#272727]">
+          <div id="player"></div>
+        </div>
+
+        <!-- Video Info & Custom Volume Controller -->
+        <div class="bg-[#181818] border border-[#272727] rounded-xl p-4 sm:p-5 space-y-4">
+          <!-- Title & Uploader -->
+          <div>
+            <h1 id="videoTitle" class="text-lg sm:text-xl font-bold text-white leading-snug">
+              영상 제목이 여기에 표시됩니다
+            </h1>
+            <p id="videoUploader" class="text-sm text-neutral-400 mt-1 flex items-center gap-1.5">
+              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+              <span>채널명</span>
+            </p>
+          </div>
+
+          <hr class="border-[#2a2a2a]">
+
+          <!-- Custom Volume Controller (기획안 요구사항) -->
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <i data-lucide="volume-2" class="w-5 h-5 text-red-500"></i>
+              <span class="text-sm font-medium text-neutral-300">커스텀 볼륨 조절</span>
+            </div>
+            <div class="flex items-center gap-3 w-48 sm:w-60">
+              <input
+                type="range"
+                id="volumeSlider"
+                min="0"
+                max="100"
+                value="100"
+                class="w-full cursor-pointer accent-red-600"
+              />
+              <span id="volumePercent" class="text-xs font-mono text-neutral-400 w-10 text-right">
+                100%
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RIGHT: Tabs Panel ( 자막 vs AI Q&A ) (5 Cols) ============ -->
+      <section class="lg:col-span-5 bg-[#181818] border border-[#272727] rounded-xl flex flex-col h-[650px] shadow-xl overflow-hidden">
+        
+        <!-- Tab Navigation Header -->
+        <div class="flex border-b border-[#272727] bg-[#141414]">
+          <button
+            id="tabTranscriptBtn"
+            class="flex-1 py-3.5 text-center text-sm font-semibold border-b-2 border-red-600 text-white transition-all flex items-center justify-center gap-2"
+          >
+            <i data-lucide="list-video" class="w-4 h-4"></i>
+            <span>타임라인 자막</span>
+          </button>
+          <button
+            id="tabQABtn"
+            class="flex-1 py-3.5 text-center text-sm font-medium text-neutral-400 hover:text-white transition-all flex items-center justify-center gap-2"
+          >
+            <i data-lucide="bot" class="w-4 h-4"></i>
+            <span>AI 질의응답 (Q&A)</span>
+          </button>
+        </div>
+
+        <!-- ============ TAB 1: Transcript List ============ -->
+        <div id="panelTranscript" class="flex-1 flex flex-col overflow-hidden p-3 sm:p-4">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#272727] text-xs text-neutral-400">
+            <span>타임스탬프를 클릭하면 해당 위치로 이동합니다</span>
+            <span class="font-mono">Gemini STT</span>
+          </div>
+          <!-- Scrollable Transcript List -->
+          <div id="transcriptList" class="flex-1 overflow-y-auto space-y-1 pr-1">
+            <!-- 자막 아이템 동적 렌더링 -->
+          </div>
+        </div>
+
+        <!-- ============ TAB 2: AI Q&A Chat ============ -->
+        <div id="panelQA" class="hidden flex-1 flex flex-col overflow-hidden">
+          <!-- Chat Message Container -->
+          <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- 가이드 메시지 초기 렌더링 -->
+          </div>
+
+          <!-- Question Input Form -->
+          <div class="p-3 bg-[#141414] border-t border-[#272727]">
+            <form id="qaForm" class="flex items-center gap-2">
+              <input
+                type="text"
+                id="questionInput"
+                placeholder="예: 'XX 내용 나오는 곳 찾아줘', '핵심 요약해줘'"
+                required
+                class="flex-1 bg-[#1e1e1e] border border-[#333333] focus:border-red-600 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 outline-none transition-colors"
+              />
+              <button
+                type="submit"
+                id="sendQuestionBtn"
+                class="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors shrink-0"
+                title="질문 전송"
+              >
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- ================= LOADING OVERLAY ================= -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#181818] border border-[#2e2e2e] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-2xl">
+      <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <h3 class="text-lg font-bold text-white">영상 분석 중</h3>
+      <p id="loadingStatus" class="text-sm text-neutral-400 leading-relaxed">
+        YouTube 오디오를 추출하고 Gemini AI로 자막을 분석하고 있습니다...
+      </p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/player.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

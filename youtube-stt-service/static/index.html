@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Audio Transcriber - Gemini AI</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Pretendard', sans-serif;
+    }
+    .transcript-box::-webkit-scrollbar {
+      width: 8px;
+    }
+    .transcript-box::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <div class="max-w-4xl mx-auto px-4 py-10">
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <div class="inline-flex items-center justify-center p-3 bg-red-100 text-red-600 rounded-2xl mb-4 shadow-sm">
+        <i data-lucide="youtube" class="w-8 h-8"></i>
+        <i data-lucide="sparkles" class="w-5 h-5 ml-1 text-amber-500"></i>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        YouTube Audio Transcriber
+      </h1>
+      <p class="mt-2 text-slate-600 text-sm sm:text-base">
+        유튜브 영상의 오디오를 다운로드하고 Google Gemini AI를 통해 텍스트로 자동 전사합니다.
+      </p>
+    </header>
+
+    <!-- Main Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-8">
+      <form id="transcribeForm" class="space-y-4">
+        <!-- URL Input -->
+        <div>
+          <label for="urlInput" class="block text-sm font-semibold text-slate-700 mb-1">
+            유튜브 영상 주소 (URL)
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="link" class="w-5 h-5"></i>
+            </div>
+            <input
+              type="text"
+              id="urlInput"
+              placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..."
+              required
+              class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm sm:text-base"
+            />
+          </div>
+        </div>
+
+        <!-- Options: Model selection -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+          <div class="flex items-center space-x-3">
+            <label for="modelSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Gemini 모델
+            </label>
+            <select
+              id="modelSelect"
+              class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg px-3 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="gemini-3.6-flash" selected>Gemini 3.6 Flash (최신 & 고속 다국어 추천)</option>
+              <option value="gemini-3.5-transcribe">Gemini 3.5 Transcribe (음성 전사용)</option>
+            </select>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="submitBtn"
+            class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+          >
+            <i data-lucide="file-audio" class="w-5 h-5 mr-2"></i>
+            <span id="btnText">오디오 추출 및 전사 시작</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Status / Loading Indicator -->
+    <div id="statusSection" class="hidden mb-8">
+      <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex items-center space-x-4">
+        <div class="animate-spin text-indigo-600">
+          <i data-lucide="loader-2" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p id="statusMessage" class="text-indigo-900 font-medium text-sm sm:text-base">
+            진행 상태를 준비하고 있습니다...
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="errorSection" class="hidden mb-8">
+      <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5 flex items-start space-x-3">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <div class="flex-1">
+          <h4 class="font-semibold text-sm">오류가 발생했습니다</h4>
+          <p id="errorMessage" class="text-sm mt-1"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <div id="resultSection" class="hidden space-y-6">
+      
+      <!-- Video & Audio Info Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row gap-6 items-center">
+        <img
+          id="videoThumbnail"
+          src=""
+          alt="Video Thumbnail"
+          class="w-full md:w-56 h-32 object-cover rounded-xl bg-slate-100 shadow-sm"
+        />
+        <div class="flex-1 min-w-0 space-y-3 w-full">
+          <div>
+            <h2 id="videoTitle" class="text-lg font-bold text-slate-900 line-clamp-2">
+              영상 제목
+            </h2>
+            <p id="videoUploader" class="text-sm text-slate-500 mt-0.5">
+              채널명
+            </p>
+          </div>
+
+          <!-- Audio Player -->
+          <div class="pt-2">
+            <p class="text-xs font-semibold text-slate-500 mb-1.5 flex items-center">
+              <i data-lucide="volume-2" class="w-3.5 h-3.5 mr-1 text-indigo-500"></i>
+              추출된 오디오 스트림 듣기
+            </p>
+            <audio id="audioPlayer" controls class="w-full h-10 rounded-lg"></audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transcript Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="align-left" class="w-5 h-5 text-indigo-600"></i>
+            <h3 class="text-lg font-bold text-slate-900">전사 결과 (Transcript)</h3>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              id="copyBtn"
+              class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i>
+              복사하기
+            </button>
+            <button
+              id="downloadTxtBtn"
+              class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg transition-colors"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i>
+              .txt 저장
+            </button>
+          </div>
+        </div>
+
+        <!-- Transcript Content -->
+        <div
+          id="transcriptText"
+          class="transcript-box max-h-96 overflow-y-auto whitespace-pre-wrap leading-relaxed text-slate-700 font-normal text-sm sm:text-base p-4 bg-slate-50 rounded-xl border border-slate-200 min-h-[160px]"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById('transcribeForm');
+    const urlInput = document.getElementById('urlInput');
+    const modelSelect = document.getElementById('modelSelect');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+
+    const statusSection = document.getElementById('statusSection');
+    const statusMessage = document.getElementById('statusMessage');
+
+    const errorSection = document.getElementById('errorSection');
+    const errorMessage = document.getElementById('errorMessage');
+
+    const resultSection = document.getElementById('resultSection');
+    const videoThumbnail = document.getElementById('videoThumbnail');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoUploader = document.getElementById('videoUploader');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const transcriptText = document.getElementById('transcriptText');
+
+    const copyBtn = document.getElementById('copyBtn');
+    const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+
+    let currentEventSource = null;
+    let accumulatedText = '';
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      const model = modelSelect.value;
+      if (!url) return;
+
+      startTranscribe(url, model);
+    });
+
+    function startTranscribe(url, model) {
+      if (currentEventSource) {
+        currentEventSource.close();
+      }
+
+      // UI 상태 초기화
+      errorSection.classList.add('hidden');
+      statusSection.classList.remove('hidden');
+      resultSection.classList.add('hidden');
+      transcriptText.innerText = '';
+      accumulatedText = '';
+      
+      submitBtn.disabled = true;
+      btnText.innerText = '처리 중...';
+
+      const sseUrl = `/api/transcribe-stream?url=${encodeURIComponent(url)}&model_name=${encodeURIComponent(model)}`;
+      currentEventSource = new EventSource(sseUrl);
+
+      currentEventSource.addEventListener('status', (e) => {
+        const data = JSON.parse(e.data);
+        statusMessage.innerText = data.message;
+      });
+
+      currentEventSource.addEventListener('info', (e) => {
+        const info = JSON.parse(e.data);
+        videoTitle.innerText = info.title;
+        videoUploader.innerText = info.uploader || 'YouTube Video';
+        if (info.thumbnail) {
+          videoThumbnail.src = info.thumbnail;
+        }
+        resultSection.classList.remove('hidden');
+      });
+
+      currentEventSource.addEventListener('audio_ready', (e) => {
+        const data = JSON.parse(e.data);
+        audioPlayer.src = data.audio_url;
+      });
+
+      currentEventSource.addEventListener('chunk', (e) => {
+        const data = JSON.parse(e.data);
+        accumulatedText += data.text;
+        transcriptText.innerText = accumulatedText;
+        transcriptText.scrollTop = transcriptText.scrollHeight;
+      });
+
+      currentEventSource.addEventListener('done', (e) => {
+        statusSection.classList.add('hidden');
+        submitBtn.disabled = false;
+        btnText.innerText = '오디오 추출 및 전사 시작';
+        currentEventSource.close();
+      });
+
+      currentEventSource.addEventListener('error', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          errorMessage.innerText = data.error;
+        } catch (_) {
+          errorMessage.innerText = '스트리밍 연결 중 오류가 발생했거나 중단되었습니다.';
+        }
+        errorSection.classList.remove('hidden');
+        statusSection.classList.add('hidden');
+        submitBtn.disabled = false;
+        btnText.innerText = '오디오 추출 및 전사 시작';
+        currentEventSource.close();
+      });
+    }
+
+    // 복사 기능
+    copyBtn.addEventListener('click', () => {
+      if (!accumulatedText) return;
+      navigator.clipboard.writeText(accumulatedText).then(() => {
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 mr-1.5 text-green-600"></i> 복사됨!`;
+        lucide.createIcons();
+        setTimeout(() => {
+          copyBtn.innerHTML = originalText;
+          lucide.createIcons();
+        }, 2000);
+      });
+    });
+
+    // TXT 다운로드 기능
+    downloadTxtBtn.addEventListener('click', () => {
+      if (!accumulatedText) return;
+      const blob = new Blob([accumulatedText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${videoTitle.innerText || 'transcript'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
