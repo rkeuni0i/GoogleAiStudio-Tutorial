@@ -6,7 +6,9 @@ import os
 import re
 import struct
 from google import genai
-from google.genai import types
+# from google.genai import types
+types = genai.types
+
 
 
 def save_binary_file(file_name, data):
