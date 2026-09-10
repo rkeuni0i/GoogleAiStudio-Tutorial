@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from services.audio_extractor import extract_audio, get_video_metadata, extract_video_id
 from services.gemini_stt import transcribe_with_timestamps
 from services.gemini_qa import answer_question_with_transcript
+from services.transcript_storage import get_saved_transcript, save_transcript_to_csv, init_csv_storage
 
 # 상위 폴더 또는 현재 폴더의 .env 로드
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -52,22 +53,31 @@ async def process_video(req: VideoProcessRequest):
     if not video_id:
         raise HTTPException(status_code=400, detail="유효한 유튜브 영상 URL이 아닙니다.")
 
-    # 1. 이미 분석된 유효한 캐시가 있는지 확인
+    # 1. 인메모리 캐시 확인
     cached = TRANSCRIPT_CACHE.get(video_id)
     if cached and cached.get("transcript") and len(cached["transcript"]) > 0:
-        # 오류 메시지 1개만 있는 경우는 캐시 무시하고 재시도
         if not ("오류" in cached["transcript"][0].get("text", "")):
+            print(f"[Memory Cache Hit] {video_id}")
             return cached
 
+    # 2. 영구 CSV 파일에서 저장된 transcript가 있는지 확인
+    saved_csv_data = get_saved_transcript(video_id)
+    if saved_csv_data and saved_csv_data.get("transcript") and len(saved_csv_data["transcript"]) > 0:
+        print(f"[CSV Cache Hit] {video_id} - 오디오 다운로드 및 Gemini 전사를 건너뛰고 저장된 CSV 데이터를 반환합니다.")
+        TRANSCRIPT_CACHE[video_id] = saved_csv_data
+        return saved_csv_data
+
     try:
-        # 2. 오디오 다운로드 및 메타데이터 추출
+        # 3. CSV에 저장된 내용이 없을 때만 오디오 다운로드 및 메타데이터 추출
+        print(f"[New Video] {video_id} - 저장된 내용이 없어 새로 오디오 추출 및 Gemini 분석을 시작합니다.")
         filepath, mime_type, metadata = extract_audio(url)
 
-        # 3. Gemini STT를 통한 타임스탬프 자막 추출
+        # 4. Gemini STT를 통한 타임스탬프 자막 추출
         transcript = transcribe_with_timestamps(filepath, mime_type)
 
         result = {
             "video_id": metadata["video_id"],
+            "url": url,
             "title": metadata["title"],
             "uploader": metadata["uploader"],
             "duration": metadata["duration"],
@@ -75,7 +85,19 @@ async def process_video(req: VideoProcessRequest):
             "transcript": transcript
         }
 
-        # 캐시 저장
+        # 5. CSV 파일에 새로 추출된 결과 저장 (최초 1회 영구 저장)
+        if transcript and len(transcript) > 0 and not ("오류" in transcript[0].get("text", "")):
+            save_transcript_to_csv(
+                video_id=metadata["video_id"],
+                url=url,
+                title=metadata["title"],
+                uploader=metadata["uploader"],
+                duration=metadata["duration"],
+                thumbnail=metadata["thumbnail"],
+                transcript=transcript
+            )
+
+        # 6. 인메모리 캐시 저장 및 반환
         TRANSCRIPT_CACHE[video_id] = result
         return result
 
