@@ -52,9 +52,12 @@ async def process_video(req: VideoProcessRequest):
     if not video_id:
         raise HTTPException(status_code=400, detail="유효한 유튜브 영상 URL이 아닙니다.")
 
-    # 1. 이미 분석된 캐시가 있는지 확인
-    if video_id in TRANSCRIPT_CACHE:
-        return TRANSCRIPT_CACHE[video_id]
+    # 1. 이미 분석된 유효한 캐시가 있는지 확인
+    cached = TRANSCRIPT_CACHE.get(video_id)
+    if cached and cached.get("transcript") and len(cached["transcript"]) > 0:
+        # 오류 메시지 1개만 있는 경우는 캐시 무시하고 재시도
+        if not ("오류" in cached["transcript"][0].get("text", "")):
+            return cached
 
     try:
         # 2. 오디오 다운로드 및 메타데이터 추출

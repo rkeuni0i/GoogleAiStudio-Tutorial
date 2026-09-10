@@ -70,14 +70,29 @@ def transcribe_with_timestamps(filepath: str, mime_type: str, model_name: str = 
                 SYSTEM_PROMPT_TRANSCRIBE
             ]
 
-        response = client.models.generate_content(
-            model=model_name,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                response_mime_type="application/json"
-            )
-        )
+        models_to_try = [model_name, "gemini-3.5-transcribe", "gemini-3.6-flash"]
+        response = None
+        last_err = None
+        for m in models_to_try:
+            try:
+                print(f"[STT] Transcribing with model: {m}...")
+                response = client.models.generate_content(
+                    model=m,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        temperature=0.2,
+                        response_mime_type="application/json"
+                    )
+                )
+                if response and response.text:
+                    break
+            except Exception as e:
+                last_err = e
+                print(f"[STT Model Fail] {m}: {e}")
+                continue
+
+        if not response or not response.text:
+            raise Exception(f"모든 Gemini 모델 호출 실패: {last_err}")
 
         raw_text = response.text or "[]"
         cleaned_json = clean_json_response(raw_text)
