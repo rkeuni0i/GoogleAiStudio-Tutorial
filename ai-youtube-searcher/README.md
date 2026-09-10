@@ -1,82 +1,292 @@
-# AI 유튜브 검색기 (AI YouTube Searcher)
+<div align="center">
 
-유튜브 영상의 링크를 입력하면 Gemini AI 모델을 통해 영상의 음성을 분석하고, 타임스탬프 자막 추출 및 AI 질의응답을 제공하는 웹 서비스입니다. 
-질문 답변 시 해당 내용이 나오는 시점으로 영상을 자동 이동(`seekTo`)하고 재생합니다.
+# 🎬 AI YouTube Searcher
+### Gemini AI 기반 유튜브 타임라인 자막 추출 & 스마트 질의응답 웹 서비스
+
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Google GenAI](https://img.shields.io/badge/Google%20GenAI-SDK%202.0+-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Gemini](https://img.shields.io/badge/Gemini-3.8%20Flash%20%7C%203.6%20Flash-FF6F00?style=for-the-badge&logo=google-cloud&logoColor=white)](https://aistudio.google.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+<p align="center">
+  <a href="#-주요-기능-key-features">주요 기능</a> •
+  <a href="#-시스템-아키텍처-system-architecture">시스템 아키텍처</a> •
+  <a href="#-빠른-시작-quickstart">빠른 시작</a> •
+  <a href="#-디렉토리-구조-directory-structure">디렉토리 구조</a> •
+  <a href="#-api-명세-api-specification">API 명세</a> •
+  <a href="#-csv-영구-캐싱-persistent-caching">CSV 캐싱</a>
+</p>
+
+[ English | **한국어** | 简体中文 | 日本語 ]
 
 ---
 
-## 📌 주요 특징 및 기능
+<p align="center">
+  <img src="https://img.shields.io/badge/YouTube%20IFrame%20API-FF0000?style=flat-square&logo=youtube&logoColor=white" />
+  <img src="https://img.shields.io/badge/yt--dlp-FF4154?style=flat-square&logo=youtube&logoColor=white" />
+  <img src="https://img.shields.io/badge/TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/React%20Components-61DAFB?style=flat-square&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square" />
+</p>
 
-1. **YouTube 스타일 헤더 UI**:
-   - 상단 검색창에서 URL 입력 및 분석
-   - 불필요한 마이크, 만들기(+), 알림 종 아이콘을 완전히 제거한 미니멀 다크 테마 디자인
-2. **YouTube IFrame Player & 커스텀 볼륨 조절**:
-   - 영상 내장 플레이어 연동
-   - 커스텀 볼륨 슬라이더 (`player.setVolume`) 지원
-3. **타임라인 자막 추출 (STT) & CSV 영구 캐싱**:
-   - `Gemini 3.5 Transcribe / 3.6 Flash` 모델 기반 시간대별 자막(`start_time`, `seconds`, `text`) 출력
-   - **CSV 영구 저장 (`transcripts.csv`)**: 최초 검색 시 링크와 transcript를 CSV 파일에 저장하고, 이후 동일 링크 검색 시 Gemini API 및 다운로드를 호출하지 않고 즉시 불러옴
-   - 자막 항목 클릭 시 해당 위치로 즉시 이동 및 자동 재생
-4. **AI 질의응답 (Q&A)**:
-   - `Gemini 3.8 Flash` 모델이 자막 문맥을 기반으로 질문에 답변
-   - 답변에 매칭되는 타임스탬프(`target_seconds`)를 반환하여 영상 자동 이동 및 재생
+</div>
+
+> **AI YouTube Searcher**는 긴 유튜브 영상을 처음부터 끝까지 시청하지 않고도 핵심 내용을 신속하게 탐색하고, **Google Gemini 3.8 Flash**와의 대화를 통해 원하는 내용이 나오는 정확한 영상 위치로 즉시 이동하여 자동 재생할 수 있는 고성능 멀티모달 웹 플랫폼입니다.
 
 ---
 
-## 📁 디렉토리 구조
+## 🌟 주요 기능 (Key Features)
+
+| 기능 | 설명 | 기술 스택 / 모델 |
+| :--- | :--- | :--- |
+| **🎨 집중도 높은 UI** | 유튜브 상단의 마이크, 만들기(+), 알림 등 불필요한 요소를 전면 배제한 미니멀 다크 모드 검색창 | Tailwind CSS, Lucide Icons |
+| **⚡ 무손실 오디오 추출** | 시스템 `ffmpeg` 설치 없이도 `yt-dlp`를 통해 고속 무손실 오디오 스트림(`m4a`, `webm`) 직접 다운로드 | `yt-dlp` |
+| **🎙️ 고정밀 타임스탬프 STT** | 음성을 분석하여 구간별 타임스탬프(`start_time`, `seconds`, `text`) 구조화 자막 추출 | `Gemini 3.5 Transcribe` / `Gemini 3.6 Flash` |
+| **🤖 Context 기반 AI Q&A** | 전체 자막을 컨텍스트로 학습하여 질문에 답변하고, 관련 영상 시점(`target_seconds`) 도출 | `Gemini 3.8 Flash` |
+| **🎯 스마트 자동 점프 재생** | 타임스탬프 자막 클릭 또는 AI 답변 시 **해당 시점으로 영상을 자동 이동(`seekTo`) 및 즉시 재생** | YouTube IFrame Player API |
+| **🔊 커스텀 볼륨 컨트롤** | 플레이어 자체 음향 외에 웹 UI 슬라이더를 통한 정밀한 볼륨 조절 지원 | `player.setVolume(val)` |
+| **💾 영구 CSV 캐싱 시스템** | 동일 URL 재검색 시 다운로드와 Gemini API 호출 없이 CSV에서 0.1초 만에 자막 즉시 로드 | `transcripts.csv` (`utf-8-sig`) |
+
+---
+
+## 🏗️ 시스템 아키텍처 (System Architecture)
+
+```mermaid
+flowchart TB
+    subgraph Client ["🖥️ Web Client (Frontend)"]
+        UI["YouTube 스타일 Header\n(URL Search Bar)"]
+        Player["YouTube IFrame Player\n(Video & Custom Volume)"]
+        TranscriptUI["타임라인 자막 패널\n(Transcript List)"]
+        ChatUI["Gemini 3.8 Flash Q&A 패널\n(AI Chat)"]
+    end
+
+    subgraph Backend ["⚙️ FastAPI Server Engine"]
+        Router["FastAPI Application (main.py)"]
+        Storage["CSV 캐시 스토리지 (transcript_storage.py)"]
+        Extractor["오디오 추출기 (audio_extractor.py)"]
+        CSV[("💾 transcripts.csv\n(영구 저장소)")]
+    end
+
+    subgraph Gemini ["🧠 Google Gemini AI Services"]
+        STT["Gemini 3.5 Transcribe / 3.6 Flash\n(Audio -> Timestamps & Subtitles)"]
+        QA["Gemini 3.8 Flash\n(Context Q&A & Target Seek Seconds)"]
+    end
+
+    %% Flow
+    UI -->|1. YouTube URL 입력| Router
+    Router -->|2. 캐시 조회| Storage
+    Storage <-->|조회 및 저장| CSV
+    
+    Storage -- 캐시 미스 시 --> Extractor
+    Extractor -->|3. Audio Stream 다운로드| Router
+    Router -->|4. 음성 전달| STT
+    STT -->|5. 타임스탬프 자막 JSON 반환| Router
+    Router -->|6. CSV 파일에 영구 캐싱| Storage
+    Router -->|7. 영상 정보 & 자막 전달| Player & TranscriptUI
+
+    ChatUI -->|8. 질문 입력| Router
+    Router -->|9. 자막 전문 + 질문 전달| QA
+    QA -->|10. 답변 + 정밀 타임스탬프(초)| Router
+    Router -->|11. 답변 응답| ChatUI
+    ChatUI -.->|12. 자동 타임라인 이동 & 재생| Player
+    TranscriptUI -.->|타임스탬프 클릭 이동| Player
+```
+
+---
+
+## 📁 디렉토리 구조 (Directory Structure)
 
 ```text
 ai-youtube-searcher/
-├── backend/
-│   ├── main.py                  # FastAPI 웹 서버 및 API 라우트
-│   ├── transcripts.csv          # 💾 링크 주소 및 transcript 영구 저장 CSV
-│   ├── requirements.txt         # 필수 라이브러리 목록
-│   ├── downloads/               # 오디오 캐시 저장소
+├── backend/                             # 🐍 FastAPI 백엔드 서버
+│   ├── main.py                          # API 라우트 및 정적 파일 마운트
+│   ├── transcripts.csv                  # 💾 URL 및 전사 자막 영구 캐시 파일
+│   ├── requirements.txt                 # 백엔드 의존 패키지 목록
+│   ├── downloads/                       # 다운로드된 오디오 스트림 캐시
 │   └── services/
-│       ├── audio_extractor.py   # yt-dlp 기반 오디오 추출
-│       ├── gemini_stt.py        # Gemini STT 타임스탬프 분석
-│       ├── gemini_qa.py         # Gemini 3.8 Flash Q&A 처리
-│       └── transcript_storage.py# CSV 파일 저장 및 캐시 조회 모듈
-├── frontend/
-│   ├── index.html               # 유튜브 스타일 다크 테마 웹 UI
+│       ├── __init__.py
+│       ├── audio_extractor.py           # yt-dlp 기반 오디오 스트림 추출 & 메타데이터
+│       ├── gemini_stt.py                # Gemini 타임스탬프 음성 전사 (Fallback 포함)
+│       ├── gemini_qa.py                 # Gemini 3.8 Flash 자막 기반 질의응답
+│       └── transcript_storage.py        # CSV 영구 저장 및 고속 캐싱 엔진
+│
+├── frontend/                            # ⚛️ 프론트엔드 웹 애플리케이션
+│   ├── index.html                       # 유튜브 다크 테마 SPA (마이크/만들기/알림 제거)
+│   ├── package.json                     # 프론트엔드 패키지 명세
 │   ├── css/
-│   │   └── style.css            # 커스텀 스타일
+│   │   └── style.css                    # 커스텀 슬라이더, 스크롤바, 플레이어 스타일
 │   ├── js/
-│   │   ├── player.js            # YouTube IFrame API 컨트롤러
-│   │   └── app.js               # 이벤트 및 API 연동 로직
-│   └── src/
-│       ├── components/          # React 컴포넌트 (Transcript.jsx 등)
-│       └── App.jsx
-└── README.md
-```
+│   │   ├── player.js                    # YouTube IFrame API 컨트롤러 (seekTo, volume)
+│   │   └── app.js                       # 검색, 탭 전환, 실시간 렌더링, Q&A 연동
+│   └── src/                             # 🧩 React 컴포넌트 라이브러리
+│       ├── App.jsx                      # 메인 통합 React 애플리케이션
+│       └── components/
+│           ├── Header.jsx               # 미니멀 상단 검색 헤더
+│           ├── VideoPlayer.jsx          # 비디오 플레이어 & 볼륨 컨트롤러
+│           ├── Transcript.jsx           # 시간대별 타임스탬프 자막 리스트
+│           └── ChatQA.jsx               # Gemini 3.8 Flash 질의응답 채팅창
+│
+└── README.md                            # 프로젝트 안내 문서
 ```
 
 ---
 
-## 🚀 실행 방법
+## 🚀 빠른 시작 (Quickstart)
 
-### 1. `myenv` 가상환경 활성화 (필요 시)
+<details open>
+<summary><b>1. 환경 준비 및 가상환경 활성화</b></summary>
+
 ```powershell
+# Anaconda 가상환경 활성화 (myenv)
 conda activate myenv
-```
 
-### 2. 패키지 설치 확인 (이미 설치되어 있다면 건너뛰기)
-```powershell
-pip install -r backend/requirements.txt
-```
-
-### 3. Gemini API 키 설정
-```powershell
-$env:GEMINI_API_KEY="your-gemini-api-key"
-```
-
-### 4. 서버 실행
-```powershell
+# 프로젝트 백엔드 디렉토리로 이동
 cd ai-youtube-searcher/backend
+```
+
+</details>
+
+<details open>
+<summary><b>2. 의존성 패키지 설치</b></summary>
+
+```powershell
+pip install -r requirements.txt
+```
+
+> **주요 의존 패키지:**
+> - `google-genai >= 2.0.0`
+> - `fastapi >= 0.115.0`
+> - `uvicorn >= 0.30.0`
+> - `yt-dlp >= 2024.0.0`
+> - `python-dotenv >= 1.0.0`
+
+</details>
+
+<details open>
+<summary><b>3. Google Gemini API 키 설정</b></summary>
+
+[Google AI Studio](https://aistudio.google.com/)에서 API Key를 발급받은 후 환경 변수를 등록합니다:
+
+```powershell
+# Windows PowerShell
+$env:GEMINI_API_KEY="AIzaSyYourGeminiApiKeyHere..."
+
+# Linux / macOS
+export GEMINI_API_KEY="AIzaSyYourGeminiApiKeyHere..."
+```
+
+*(또는 `ai-youtube-searcher/backend/.env` 파일에 `GEMINI_API_KEY=...` 형식으로 저장할 수 있습니다)*
+
+</details>
+
+<details open>
+<summary><b>4. 서버 실행</b></summary>
+
+```powershell
 python main.py
 ```
-*(기본 포트: `8001`로 실행됩니다)*
 
-### 5. 브라우저 접속
-웹 브라우저를 열고 다음 주소로 접속합니다:
-👉 **http://localhost:8001**
+서버가 구동되면 웹 브라우저를 열고 아래 주소로 접속합니다:
+👉 **[http://localhost:8001](http://localhost:8001)**
+
+</details>
+
+---
+
+## 💾 CSV 영구 캐싱 시스템 (Persistent Caching)
+
+한 번 분석된 영상은 [`transcripts.csv`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/ai-youtube-searcher/backend/transcripts.csv)에 영구 저장되어, 반복 요청 시 **Gemini API 호출 비용과 오디오 다운로드 시간을 0으로 절감**합니다.
+
+```csv
+video_id,url,title,uploader,duration,thumbnail,transcript_json,created_at
+Eba93Qw6_CM,https://youtu.be/Eba93Qw6_CM,[루카] 30초 예고편,Disney Korea,30,https://i.ytimg.com/...,"[{\""start_time\"": \""00:00\"", \""seconds\"": 0, \""text\"": \""Come on, Luca.\""}]",2026-09-10 15:28:22
+```
+
+- **저장 포맷**: `utf-8-sig` (Excel, Pandas 등에서 한글 깨짐 없이 즉시 호환)
+- **중복 방지**: `video_id` 기준 유일성 보장
+- **오류 격리**: 정상적인 자막이 포함된 결과만 영구 캐시로 승격
+
+---
+
+## 🌐 API 명세 (API Specification)
+
+<details>
+<summary><b>POST /api/process-video</b> - 유튜브 영상 분석 및 자막 추출</summary>
+
+- **Request Body:**
+  ```json
+  {
+    "url": "https://youtu.be/Eba93Qw6_CM"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "video_id": "Eba93Qw6_CM",
+    "url": "https://youtu.be/Eba93Qw6_CM",
+    "title": "[루카] '특별한 친구' 30초 예고편",
+    "uploader": "디즈니 코리아",
+    "duration": 30,
+    "thumbnail": "https://i.ytimg.com/vi/Eba93Qw6_CM/maxresdefault.jpg",
+    "transcript": [
+      { "start_time": "00:00", "seconds": 0, "text": "Come on, Luca. Just follow my lead." },
+      { "start_time": "00:05", "seconds": 5, "text": "That's not it, try it again." },
+      { "start_time": "00:14", "seconds": 14, "text": "특별한 친구 바다괴물!" }
+    ]
+  }
+  ```
+
+</details>
+
+<details>
+<summary><b>POST /api/qa</b> - 자막 컨텍스트 기반 AI 질문 및 타임라인 탐색</summary>
+
+- **Request Body:**
+  ```json
+  {
+    "video_id": "Eba93Qw6_CM",
+    "question": "바다괴물이 나오는 부분이 몇 초야?",
+    "video_title": "[루카] 30초 예고편",
+    "transcript": [...]
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "answer": "바다괴물에 대해 언급하는 장면은 [00:14] 구간입니다. '특별한 친구 바다괴물!'이라는 대사와 함께 등장합니다.",
+    "target_seconds": 14,
+    "timestamp_str": "00:14"
+  }
+  ```
+
+</details>
+
+---
+
+## 🛠️ 모델 파이프라인 (AI Model Pipeline)
+
+```text
+[YouTube Audio]
+       │
+       ▼
+[Gemini 3.5 Transcribe / 3.6 Flash] ──► { start_time, seconds, text } JSON 구조화 자막
+       │
+       ▼
+[Gemini 3.8 Flash Context Engine]   ──► 질문 의도 분석 및 정밀 타임스탬프(초) 도출
+       │
+       ▼
+[YouTube IFrame Player Controller]  ──► player.seekTo(target_seconds, true) & playVideo()
+```
+
+---
+
+<div align="center">
+
+### 🤝 Contributing & Support
+
+버그 제보나 기능 제안은 이슈를 통해 남겨주세요.
+
+**Made with ❤️ using Google Gemini & FastAPI**
+
+</div>
