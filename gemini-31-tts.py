@@ -10,7 +10,6 @@ from google import genai
 types = genai.types
 
 
-
 def save_binary_file(file_name, data):
     f = open(file_name, "wb")
     f.write(data)
