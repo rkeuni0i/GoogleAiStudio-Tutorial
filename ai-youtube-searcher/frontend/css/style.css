@@ -21,13 +21,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--yt-bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #3a3a3a;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #555555;
 }
@@ -40,6 +43,7 @@ input[type="range"] {
   height: 4px;
   outline: none;
 }
+
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
@@ -49,6 +53,7 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   transition: transform 0.1s ease;
 }
+
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
   background: var(--yt-red);
@@ -58,12 +63,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .video-container {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  padding-bottom: 56.25%;
+  /* 16:9 Aspect Ratio */
   height: 0;
   background-color: #000;
   border-radius: 12px;
   overflow: hidden;
 }
+
 .video-container iframe,
 .video-container div#player {
   position: absolute;

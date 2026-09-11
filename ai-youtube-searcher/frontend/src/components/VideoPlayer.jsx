@@ -69,6 +69,11 @@ export default function VideoPlayer({ videoId, title, uploader, playerRef }) {
     setVolume(val);
     if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
       playerRef.current.setVolume(val);
+      if (val > 0 && typeof playerRef.current.unMute === 'function') {
+        playerRef.current.unMute();
+      } else if (val === 0 && typeof playerRef.current.mute === 'function') {
+        playerRef.current.mute();
+      }
     }
   };
 
