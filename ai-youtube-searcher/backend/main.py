@@ -11,7 +11,11 @@ from dotenv import load_dotenv
 from services.audio_extractor import extract_audio, get_video_metadata, extract_video_id
 from services.gemini_stt import transcribe_with_timestamps
 from services.gemini_qa import answer_question_with_transcript
-from services.transcript_storage import get_saved_transcript, save_transcript_to_csv, init_csv_storage
+from services.transcript_storage import (
+    get_saved_transcript, 
+    save_transcript, 
+    init_storage
+)
 
 # 상위 폴더 또는 현재 폴더의 .env 로드
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +24,12 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 load_dotenv() # 시스템 기본
 
-app = FastAPI(title="AI YouTube Searcher API", version="1.1.0")
+app = FastAPI(title="AI YouTube Searcher API", version="1.2.0")
+
+# 서버 시작 시 DB 초기화 및 CSV 데이터 마이그레이션 실행
+@app.on_event("startup")
+def on_startup():
+    init_storage()
 
 # CORS 허용
 app.add_middleware(
@@ -85,9 +94,9 @@ async def process_video(req: VideoProcessRequest):
             "transcript": transcript
         }
 
-        # 5. CSV 파일에 새로 추출된 결과 저장 (최초 1회 영구 저장)
+        # 5. 데이터베이스(PostgreSQL) 및 백업 CSV에 새로 추출된 결과 저장
         if transcript and len(transcript) > 0 and not ("오류" in transcript[0].get("text", "")):
-            save_transcript_to_csv(
+            save_transcript(
                 video_id=metadata["video_id"],
                 url=url,
                 title=metadata["title"],
