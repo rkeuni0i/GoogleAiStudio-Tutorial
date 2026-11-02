@@ -189,7 +189,7 @@ graph LR
    - 좌측에 추가된 **데이터베이스(원통 모양) 아이콘** 클릭 ➜ 상단 **`+` (Create Connection)** 클릭
 3. **SQLite 연결**:
    - DB 종류에서 **`SQLite`** 선택 (비밀번호/포트 입력 필요 없음!)
-   - **`Database Path`**에 [`ai-youtube-searcher/backend/transcripts.db`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/ai-youtube-searcher/backend/transcripts.db) 파일 선택 후 **[Save]** 클릭
+   - **`Database Path`**에 [`ai-youtube-searcher/backend/transcripts.db`](./backend/transcripts.db) 파일 선택 후 **[Save]** 클릭
 4. **테이블 조회**:
    - 좌측 트리에서 `transcripts.db` ➜ `main` ➜ **`transcripts` 테이블을 더블 클릭**하면 중앙 화면에 정렬 및 필터가 가능한 **스프레드시트 표**가 바로 열립니다.
 

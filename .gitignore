@@ -242,3 +242,6 @@ myenv/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# 로컬 환경 경로가 담긴 설정
+pyrightconfig.json

@@ -78,7 +78,7 @@ Google GenAI 모델을 이용하려면 [Google AI Studio](https://aistudio.googl
 
 ## 🔍 하위 프로젝트 상세 소개
 
-### 1. 🎬 [ai-youtube-searcher](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/ai-youtube-searcher/README.md)
+### 1. 🎬 [ai-youtube-searcher](./ai-youtube-searcher/README.md)
 **유튜브 타임라인 자막 추출 & Gemini 3.8 Flash 기반 스마트 질의응답 서비스**
 
 - **주요 기능**:
@@ -94,45 +94,45 @@ Google GenAI 모델을 이용하려면 [Google AI Studio](https://aistudio.googl
   python backend/main.py
   # 브라우저에서 http://localhost:8000 접속
   ```
-- 자세한 내용은 [ai-youtube-searcher/README.md](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/ai-youtube-searcher/README.md)를 참고하세요.
+- 자세한 내용은 [ai-youtube-searcher/README.md](./ai-youtube-searcher/README.md)를 참고하세요.
 
 ---
 
-### 2. 🗣️ [gemini-31-tts](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-31-tts/README.md)
+### 2. 🗣️ [gemini-31-tts](./gemini-31-tts/README.md)
 **Gemini 3.1 Flash Text-to-Speech (TTS) 코드 분석 및 실습**
 
 - **주요 기능**:
   - 텍스트 대본과 함께 오디오 스타일 프로필(감정, 억양, 배경 분위기 등)을 프롬프트로 부여하여 오디오 합성
   - API 스트리밍 청크(PCM/L16) 수집 및 표준 RIFF/WAVE 44바이트 바이너리 헤더를 Python `struct` 모듈로 직접 생성하여 `.wav`로 저장
-- **코드 파일**: [`gemini-31-tts.py`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-31-tts/gemini-31-tts.py)
+- **코드 파일**: [`gemini-31-tts.py`](./gemini-31-tts/gemini-31-tts.py)
 - **실행 방법**:
   ```bash
   cd gemini-31-tts
   pip install google-genai
   python gemini-31-tts.py
   ```
-- 라인별 코드 상세 분석은 [gemini-31-tts/README.md](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-31-tts/README.md)를 참고하세요.
+- 라인별 코드 상세 분석은 [gemini-31-tts/README.md](./gemini-31-tts/README.md)를 참고하세요.
 
 ---
 
-### 3. 🎙️ [gemini-35-stt](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-35-stt/README.md)
+### 3. 🎙️ [gemini-35-stt](./gemini-35-stt/README.md)
 **Gemini 3.5 Transcribe Speech-to-Text (STT) 음성 전사 실습**
 
 - **주요 기능**:
   - `gemini-3.5-transcribe` 전용 음성 인식 모델을 활용한 로컬 오디오 파일 실시간 텍스트 변환
   - 스트리밍 응답(`generate_content_stream`) 처리를 통한 실시간 콘솔 텍스트 출력
-- **코드 파일**: [`gemini-35-stt-example.py`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-35-stt/gemini-35-stt-example.py)
+- **코드 파일**: [`gemini-35-stt-example.py`](./gemini-35-stt/gemini-35-stt-example.py)
 - **실행 방법**:
   ```bash
   cd gemini-35-stt
   pip install google-genai
   python gemini-35-stt-example.py
   ```
-- 라인별 코드 상세 분석은 [gemini-35-stt/README.md](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/gemini-35-stt/README.md)를 참고하세요.
+- 라인별 코드 상세 분석은 [gemini-35-stt/README.md](./gemini-35-stt/README.md)를 참고하세요.
 
 ---
 
-### 4. 🌐 [youtube-stt-service](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/youtube-stt-service/README.md)
+### 4. 🌐 [youtube-stt-service](./youtube-stt-service/README.md)
 **경량 유튜브 오디오 추출 & 실시간 STT 웹 애플리케이션**
 
 - **주요 기능**:
@@ -140,9 +140,9 @@ Google GenAI 모델을 이용하려면 [Google AI Studio](https://aistudio.googl
   - Gemini AI 기반 실시간 스트리밍 음성 전사
   - 웹 브라우저 내 인라인 오디오 플레이어 청취, 텍스트 클립보드 복사 및 `.txt` 다운로드 기능 제공
 - **핵심 모듈**:
-  - [`app.py`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/youtube-stt-service/app.py): FastAPI 웹 서버
-  - [`downloader.py`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/youtube-stt-service/downloader.py): 오디오 다운로더
-  - [`transcriber.py`](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/youtube-stt-service/transcriber.py): STT 전사기
+  - [`app.py`](./youtube-stt-service/app.py): FastAPI 웹 서버
+  - [`downloader.py`](./youtube-stt-service/downloader.py): 오디오 다운로더
+  - [`transcriber.py`](./youtube-stt-service/transcriber.py): STT 전사기
 - **실행 방법**:
   ```bash
   cd youtube-stt-service
@@ -150,7 +150,7 @@ Google GenAI 모델을 이용하려면 [Google AI Studio](https://aistudio.googl
   python app.py
   # 브라우저에서 http://localhost:8000 접속
   ```
-- 자세한 내용은 [youtube-stt-service/README.md](file:///c:/Users/2003g/Documents/Project_sesac/GoogleAiStudio-Tutorial/youtube-stt-service/README.md)를 참고하세요.
+- 자세한 내용은 [youtube-stt-service/README.md](./youtube-stt-service/README.md)를 참고하세요.
 
 ---
 
